@@ -1,0 +1,44 @@
+services:
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: chromadb
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    networks:
+      - rag_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - rag_network
+
+  api:
+    build: .
+    container_name: rag_api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./knowledge_base:/app/knowledge_base
+    depends_on:
+      - chromadb
+      - redis
+    networks:
+      - rag_network
+
+volumes:
+  chroma_data:
+
+networks:
+  rag_network:
+    driver: bridge
