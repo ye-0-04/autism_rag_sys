@@ -44,7 +44,7 @@ class RAGOrchestrator:
             profile = self.parser.parse(raw_text, patient_id=patient_id)
 
             logger.info("Step 4/5: Retrieving knowledge base chunks")
-            chunks = self.retriever.retrieve(profile, top_k=6)
+            chunks = self.retriever.retrieve(profile, top_k=3)
 
             logger.info("Step 5/5: Generating nutrition plan via LLM")
             user_prompt = build_user_prompt(
@@ -58,6 +58,7 @@ class RAGOrchestrator:
             llm_response = await self.llm.generate(
                 user_prompt=user_prompt,
                 system_prompt=SYSTEM_PROMPT,
+                max_tokens=2048,
             )
 
             plan = await self.formatter.parse_with_retry(llm_response, profile, chunks)

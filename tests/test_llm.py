@@ -40,6 +40,7 @@ async def test_ollama_generate_returns_llmresponse():
     )
     assert isinstance(response, LLMResponse)
     assert response.content is not None
+    assert len(response.content) > 0
     assert response.prompt_tokens > 0
     assert response.completion_tokens > 0
 

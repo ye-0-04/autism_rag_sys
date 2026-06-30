@@ -16,3 +16,11 @@ env/
 *~
 .DS_Store
 Thumbs.db
+
+.env
+test_*.pdf
+debug_*.py
+sample_data/
+scripts/debug_*.py
+scripts/test_*.py
+knowledge_base/documents/CamScanner*

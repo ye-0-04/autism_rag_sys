@@ -7,16 +7,18 @@ from app.models.genetic_profile import GeneticMarker, GeneticProfile
 logger = logging.getLogger(__name__)
 
 GENE_PATTERN = re.compile(
-    r"(?i)(MTHFR|COMT|VDR|APOE|FTO|TCF7L2|BCMO1|FADS1|FADS2|SOD2|CBS|MTR|MTRR|BHMT)"
+    r"(?i)(MTHFR|COMT|VDR|APOE|FTO|TCF7L2|BCMO1|FADS1|FADS2|SOD2|CBS|MTR|MTRR|BHMT|"
+    r"OPHN1|PAK3|RPS6KA3|IL1RAPL1?|FMR2|GDI1|CASK|TM4SF2|PTPRD|ADCY8|GRM3|BDNF|"
+    r"GAD1|GRIN1|GRIN2[AB]|TBR1|NPAS4|CNTNAP2|TBX1)"
 )
 
 VARIANT_PATTERN = re.compile(
-    r"(?i)(rs\d+|[A-Z]\d+[A-Z]|C677T|A1298C|V158M|rs429358|rs7412)"
+    r"(?i)(rs\d+|C677T|A1298C|V158M|TaqI|A66G|rs429358|rs7412|P199P|Q158R)"
 )
 
 STATUS_PATTERN = re.compile(
-    r"(?i)(homozygous\s+(?:variant|risk|alternate)|heterozygous|wild[\s-]?type|"
-    r"\+/\+|\+/-|-/-|variant|normal|positive|negative|detected|not\s+detected)"
+    r"(?i)(homozygous\s+(?:variant|risk|alternate|mutant)|heterozygous|wild[\s-]?type|"
+    r"\+/\+|\+/-|-/-|normal|positive|negative|detected|not\s+detected)"
 )
 
 FLAG_PATTERN = re.compile(
@@ -47,6 +49,12 @@ class GeneticDataParser:
         logger.info(f"Parsed {len(markers)} genetic markers for patient {patient_id}")
         return profile
 
+    def _is_structured_line(self, line: str) -> bool:
+        structured = bool(
+            re.search(r"(?i)(Gene|Variant|Status|Result|Genotype)[\s:]", line)
+        )
+        return structured
+
     def _regex_extract(self, text: str) -> List[GeneticMarker]:
         lines = text.split("\n")
         markers = []
@@ -62,19 +70,27 @@ class GeneticDataParser:
                 continue
             seen_genes.add(gene)
 
-            context = " ".join(lines[i : i + 3])
+            context = " ".join(lines[max(0, i - 1) : i + 3])
             variant_match = VARIANT_PATTERN.search(context)
             status_match = STATUS_PATTERN.search(context)
+
+            variant = "UNKNOWN"
+            status = "UNKNOWN"
+
+            if self._is_structured_line(line):
+                if variant_match:
+                    variant = variant_match.group(0).upper()
+                if status_match:
+                    status = self._normalize_status(status_match.group(0))
+
+            if status == "UNKNOWN" and not self._is_structured_line(line):
+                logger.debug(f"Skipping variant/status for gene {gene} in running text")
 
             markers.append(
                 GeneticMarker(
                     gene=gene,
-                    variant=variant_match.group(0).upper()
-                    if variant_match
-                    else "UNKNOWN",
-                    status=self._normalize_status(
-                        status_match.group(0) if status_match else "UNKNOWN"
-                    ),
+                    variant=variant,
+                    status=status,
                     raw_line=line.strip(),
                 )
             )

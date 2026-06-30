@@ -2,6 +2,7 @@ import json
 import re
 import logging
 from typing import Optional
+import demjson3
 from app.models.nutrition_plan import (
     NutritionPlan,
     NutritionPlanContent,
@@ -63,23 +64,27 @@ class OutputFormatter:
         return self._fallback_plan(profile, chunks, llm_response)
 
     def _try_parse_json(self, text: str) -> Optional[dict]:
-        try:
-            return json.loads(text.strip())
-        except json.JSONDecodeError:
-            pass
+        candidates = [text.strip()]
 
         match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
         if match:
-            try:
-                return json.loads(match.group(1))
-            except json.JSONDecodeError:
-                pass
+            candidates.append(match.group(1))
 
         match = re.search(r"\{.*\}", text, re.DOTALL)
         if match:
+            candidates.append(match.group(0))
+
+        for candidate in candidates:
             try:
-                return json.loads(match.group(0))
+                return json.loads(candidate)
             except json.JSONDecodeError:
+                pass
+
+            try:
+                result = demjson3.decode(candidate)
+                if isinstance(result, dict):
+                    return result
+            except Exception:
                 pass
 
         return None
@@ -119,16 +124,20 @@ class OutputFormatter:
                 foods_to_avoid=data.get("foods_to_avoid", []),
                 supplements=[
                     Supplement(
-                        name=s.get("name", ""),
-                        dose=s.get("dose", ""),
-                        frequency=s.get("frequency", ""),
-                        reason=s.get("reason", ""),
+                        name=s.get("name", "") or "",
+                        dose=s.get("dose", "") or "",
+                        frequency=s.get("frequency", "") or "",
+                        reason=s.get("reason", "") or "",
                     )
                     for s in supplements_data
                     if isinstance(s, dict)
                 ],
-                meal_timing_notes=data.get("meal_timing_notes", ""),
-                notes=data.get("notes", ""),
+                meal_timing_notes=data.get("meal_timing_notes") or "",
+                notes=(
+                    " | ".join(data["notes"])
+                    if isinstance(data.get("notes"), list)
+                    else (data.get("notes") or "")
+                ),
             ),
             source_chunks_used=[f"{c.source}[{c.chunk_index}]" for c in chunks],
             confidence_score=confidence,

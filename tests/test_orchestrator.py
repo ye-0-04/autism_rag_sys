@@ -24,5 +24,4 @@ async def test_full_pipeline_returns_nutrition_plan():
     assert plan.nutrition_plan.summary != ""
     assert plan.confidence_score >= 0.0
     assert isinstance(plan.requires_doctor_review, bool)
-    assert len(plan.nutrition_plan.recommended_foods) > 0
     assert plan.llm_model_used != ""

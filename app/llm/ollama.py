@@ -36,8 +36,12 @@ class OllamaProvider(LLMProvider):
         response.raise_for_status()
         data = response.json()
 
+        content = data["message"].get("content", "") or data["message"].get(
+            "thinking", ""
+        )
+
         return LLMResponse(
-            content=data["message"]["content"],
+            content=content,
             model=data["model"],
             prompt_tokens=data.get("prompt_eval_count", 0),
             completion_tokens=data.get("eval_count", 0),

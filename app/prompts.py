@@ -77,7 +77,7 @@ def build_user_prompt(
     )
 
     knowledge_chunks = "\n\n---\n\n".join(
-        f"[Source: {c.source}, Score: {c.similarity_score:.2f}]\n{c.text}"
+        f"[Source: {c.source}, Score: {c.similarity_score:.2f}]\n{c.text[:800]}"
         for c in chunks
     )
 

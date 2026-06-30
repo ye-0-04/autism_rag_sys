@@ -1,7 +1,7 @@
 import logging
 import time
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, File, UploadFile, Form, Depends, HTTPException
+from fastapi import FastAPI, File, UploadFile, Form, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter
@@ -77,7 +77,7 @@ async def health():
 )
 @limiter.limit(f"{settings.RATE_LIMIT_PER_MINUTE}/minute")
 async def generate_nutrition_plan(
-    request,
+    request: Request,
     file: UploadFile = File(..., description="Genetics test report — PDF or image"),
     patient_id: str = Form(..., description="Unique patient identifier"),
 ):

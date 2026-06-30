@@ -1,0 +1,352 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Autism Nutrition RAG API",
+    "description": "Generates personalized nutrition plans from genetics test reports.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/generate-nutrition-plan": {
+      "post": {
+        "summary": "Generate Nutrition Plan",
+        "operationId": "generate_nutrition_plan_generate_nutrition_plan_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_generate_nutrition_plan_generate_nutrition_plan_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NutritionPlan"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_generate_nutrition_plan_generate_nutrition_plan_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "Genetics test report \u2014 PDF or image"
+          },
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id",
+            "description": "Unique patient identifier"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "patient_id"
+        ],
+        "title": "Body_generate_nutrition_plan_generate_nutrition_plan_post"
+      },
+      "DailyTargets": {
+        "properties": {
+          "calories": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calories"
+          },
+          "protein_g": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protein G"
+          },
+          "carbohydrates_g": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbohydrates G"
+          },
+          "fat_g": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fat G"
+          },
+          "fiber_g": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fiber G"
+          },
+          "water_ml": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water Ml"
+          }
+        },
+        "type": "object",
+        "title": "DailyTargets"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "NutritionPlan": {
+        "properties": {
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "genetic_markers_detected": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Genetic Markers Detected"
+          },
+          "nutrition_plan": {
+            "$ref": "#/components/schemas/NutritionPlanContent"
+          },
+          "source_chunks_used": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Source Chunks Used"
+          },
+          "confidence_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence Score"
+          },
+          "requires_doctor_review": {
+            "type": "boolean",
+            "title": "Requires Doctor Review",
+            "default": true
+          },
+          "llm_model_used": {
+            "type": "string",
+            "title": "Llm Model Used",
+            "default": ""
+          },
+          "prompt_tokens": {
+            "type": "integer",
+            "title": "Prompt Tokens",
+            "default": 0
+          },
+          "completion_tokens": {
+            "type": "integer",
+            "title": "Completion Tokens",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "patient_id",
+          "nutrition_plan",
+          "confidence_score"
+        ],
+        "title": "NutritionPlan"
+      },
+      "NutritionPlanContent": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "daily_targets": {
+            "$ref": "#/components/schemas/DailyTargets"
+          },
+          "recommended_foods": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Recommended Foods"
+          },
+          "foods_to_avoid": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Foods To Avoid"
+          },
+          "supplements": {
+            "items": {
+              "$ref": "#/components/schemas/Supplement"
+            },
+            "type": "array",
+            "title": "Supplements"
+          },
+          "meal_timing_notes": {
+            "type": "string",
+            "title": "Meal Timing Notes",
+            "default": ""
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary"
+        ],
+        "title": "NutritionPlanContent"
+      },
+      "Supplement": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "dose": {
+            "type": "string",
+            "title": "Dose"
+          },
+          "frequency": {
+            "type": "string",
+            "title": "Frequency"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "dose",
+          "frequency",
+          "reason"
+        ],
+        "title": "Supplement"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

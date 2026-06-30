@@ -34,10 +34,8 @@ def test_preprocessor_handles_already_grayscale():
     assert result.shape == (300, 300)
 
 
-from app.ocr.extractor import OCRExtractor
-
-
 def test_ocr_extracts_text_from_synthetic_image():
+    from app.ocr.extractor import OCRExtractor
     import fitz
 
     doc = fitz.open()
@@ -63,17 +61,18 @@ def test_ocr_extracts_text_from_synthetic_image():
 
 
 def test_ocr_returns_empty_string_for_blank_image():
+    from app.ocr.extractor import OCRExtractor
+
     extractor = OCRExtractor()
     blank = np.ones((500, 500), dtype=np.uint8) * 255
     result = extractor.extract_text(blank)
     assert isinstance(result, str)
 
 
-from app.ocr.parser import GeneticDataParser
-from app.models.genetic_profile import GeneticProfile, GeneticMarker
-
-
 def test_parser_extracts_mthfr_from_text():
+    from app.ocr.parser import GeneticDataParser
+    from app.models.genetic_profile import GeneticProfile
+
     sample_text = """
     --- PAGE 1 ---
     GENETIC ANALYSIS REPORT
@@ -94,6 +93,8 @@ def test_parser_extracts_mthfr_from_text():
 
 
 def test_parser_normalizes_status():
+    from app.ocr.parser import GeneticDataParser
+
     sample_text = "Gene: MTHFR  Variant: C677T  Status: +/+"
     parser = GeneticDataParser()
     profile = parser.parse(sample_text)
@@ -101,6 +102,8 @@ def test_parser_normalizes_status():
 
 
 def test_parser_returns_profile_with_no_markers_gracefully():
+    from app.ocr.parser import GeneticDataParser
+
     parser = GeneticDataParser()
     profile = parser.parse("This is not a genetics report.", patient_id="bad-input")
     assert len(profile.markers) == 0
@@ -108,6 +111,8 @@ def test_parser_returns_profile_with_no_markers_gracefully():
 
 
 def test_genetic_profile_to_retrieval_query():
+    from app.models.genetic_profile import GeneticProfile, GeneticMarker
+
     profile = GeneticProfile(
         patient_id="test",
         markers=[
@@ -125,6 +130,8 @@ def test_full_ocr_to_profile_pipeline():
     import fitz
     from app.ocr.preprocessor import ImagePreprocessor
     from app.ocr.extractor import OCRExtractor
+    from app.ocr.parser import GeneticDataParser
+    from app.models.genetic_profile import GeneticProfile
 
     doc = fitz.open()
     page = doc.new_page()

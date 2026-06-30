@@ -1,41 +1,33 @@
-from paddleocr import PaddleOCR
+import os
+import platform
+import pytesseract
 import numpy as np
 import logging
 from typing import List
 
 logger = logging.getLogger(__name__)
 
+# Point pytesseract to system Tesseract (portable: Windows msys2 vs Linux default)
+if platform.system() == "Windows":
+    os.environ.setdefault("TESSDATA_PREFIX", r"C:\msys64\ucrt64\share\tessdata")
+    pytesseract.pytesseract.tesseract_cmd = r"C:\msys64\ucrt64\bin\tesseract.exe"
+else:
+    os.environ.setdefault("TESSDATA_PREFIX", "/usr/share/tesseract-ocr/4.00/tessdata")
+
 
 class OCRExtractor:
     def __init__(self):
-        logger.info("Loading PaddleOCR models...")
-        self.ocr = PaddleOCR(
-            use_angle_cls=True,
-            lang="en",
-            use_gpu=False,
-            show_log=False,
-        )
-        logger.info("PaddleOCR models loaded.")
+        logger.info("Initializing Tesseract OCR extractor...")
 
     def extract_text(self, image: np.ndarray) -> str:
-        result = self.ocr.ocr(image, cls=True)
+        config = "--psm 6 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:/ +-"
+        text = pytesseract.image_to_string(image, config=config)
 
-        if not result or not result[0]:
+        if not text or not text.strip():
             logger.warning("OCR returned no results for this page.")
             return ""
 
-        lines = []
-        for line in result[0]:
-            text = line[1][0]
-            confidence = line[1][1]
-
-            if confidence >= 0.6:
-                lines.append(text)
-            else:
-                logger.debug(
-                    f"Skipping low-confidence OCR result: '{text}' ({confidence:.2f})"
-                )
-
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
         extracted = "\n".join(lines)
         logger.info(f"Extracted {len(lines)} text lines from page")
         return extracted

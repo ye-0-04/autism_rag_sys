@@ -88,3 +88,24 @@ def test_valid_request_returns_nutrition_plan(mock_orchestrator):
     assert "nutrition_plan" in data
     assert "confidence_score" in data
     assert "requires_doctor_review" in data
+
+
+@patch("app.main.orchestrator")
+def test_rate_limiter_returns_429_after_limit(mock_orchestrator):
+    mock_orchestrator.process = AsyncMock(return_value=make_mock_plan())
+    mock_orchestrator.llm.health_check = AsyncMock(return_value=True)
+    mock_orchestrator.retriever.get_collection_size.return_value = 50
+
+    pdf_bytes = b"%PDF-1.4 fake pdf content"
+    headers = {"X-API-Key": VALID_API_KEY}
+    files = {"file": ("report.pdf", pdf_bytes, "application/pdf")}
+    data = {"patient_id": "rate-test"}
+
+    for i in range(15):
+        resp = client.post(
+            "/generate-nutrition-plan", headers=headers, files=files, data=data
+        )
+        if resp.status_code == 429:
+            return
+
+    pytest.fail("Rate limiter did not return 429 after 15 requests")
