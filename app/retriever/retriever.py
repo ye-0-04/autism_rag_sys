@@ -43,9 +43,14 @@ class NutritionRetriever:
             query, normalize_embeddings=True
         ).tolist()
 
+        count = self.collection.count()
+        if count == 0:
+            logger.warning("ChromaDB collection is empty. Returning 0 retrieved chunks.")
+            return []
+
         results = self.collection.query(
             query_embeddings=[query_embedding],
-            n_results=min(top_k, self.collection.count()),
+            n_results=min(top_k, count),
             include=["documents", "metadatas", "distances"],
         )
 

@@ -171,8 +171,8 @@ Note: Each child responds differently. Implement changes gradually and track res
 """,
 )
 
-output_path = "knowledge_base/documents/autism_nutrition_comprehensive.pdf"
-os.makedirs("knowledge_base/documents", exist_ok=True)
+output_path = "autism_rag_sys/knowledge_base/documents/autism_nutrition_comprehensive.pdf"
+os.makedirs("autism_rag_sys/knowledge_base/documents", exist_ok=True)
 doc.save(output_path)
 doc.close()
 print(f"Generated: {output_path}")

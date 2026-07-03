@@ -1,8 +1,7 @@
 services:
-
   chromadb:
     image: chromadb/chroma:latest
-    container_name: chromadb
+    container_name: auticare_chromadb
     ports:
       - "8001:8000"
     volumes:
@@ -11,34 +10,37 @@ services:
       - IS_PERSISTENT=TRUE
       - ANONYMIZED_TELEMETRY=FALSE
     networks:
-      - rag_network
+      - auticare_rag_network
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-    container_name: redis
+    container_name: auticare_redis
     ports:
       - "6379:6379"
     networks:
-      - rag_network
+      - auticare_rag_network
+    restart: unless-stopped
 
   api:
     build: .
-    container_name: rag_api
+    container_name: auticare_rag_api
     ports:
       - "8000:8000"
     env_file:
-      - .env.docker
+      - .env.production
     volumes:
       - ./knowledge_base:/app/knowledge_base
     depends_on:
       - chromadb
       - redis
     networks:
-      - rag_network
+      - auticare_rag_network
+    restart: unless-stopped
 
 volumes:
   chroma_data:
 
 networks:
-  rag_network:
+  auticare_rag_network:
     driver: bridge

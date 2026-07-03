@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 from app.config import settings
 from app.retriever.ingestion import extract_text_from_pdf, chunk_text
 
-DOCUMENTS_DIR = Path("knowledge_base/documents")
+DOCUMENTS_DIR = Path("autism_rag_sys/knowledge_base/documents")
 EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
 
 

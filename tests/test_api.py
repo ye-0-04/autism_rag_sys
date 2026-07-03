@@ -6,8 +6,10 @@ from app.models.nutrition_plan import NutritionPlan, NutritionPlanContent, Daily
 from datetime import datetime
 import io
 
+from app.config import settings
+
 client = TestClient(app)
-VALID_API_KEY = "your-secret-api-key-change-this"
+VALID_API_KEY = settings.API_SECRET_KEY
 
 
 def make_mock_plan():

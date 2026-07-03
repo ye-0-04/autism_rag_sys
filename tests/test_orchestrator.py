@@ -14,6 +14,9 @@ async def test_full_pipeline_returns_nutrition_plan():
     doc.close()
 
     orchestrator = RAGOrchestrator()
+    if not await orchestrator.llm.health_check():
+        pytest.skip(f"Configured LLM backend ({orchestrator.llm.__class__.__name__}) is not running/healthy")
+        
     plan = await orchestrator.process(
         file_bytes=pdf_bytes,
         filename="integration_test.pdf",
